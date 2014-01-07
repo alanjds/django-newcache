@@ -35,6 +35,7 @@ CACHE_VERSION = str(getattr(settings, 'CACHE_VERSION', 1))
 CACHE_BEHAVIORS = getattr(settings, 'CACHE_BEHAVIORS', {'hash': 'crc'})
 CACHE_KEY_MODULE = getattr(settings, 'CACHE_KEY_MODULE', 'newcache')
 CACHE_HERD_TIMEOUT = getattr(settings, 'CACHE_HERD_TIMEOUT', 60)
+CACHE_MIN_COMPRESS_LEN = getattr(settings, 'CACHE_MIN_COMPRESS_LEN', 0)
 
 class Marker(object):
     pass
@@ -147,7 +148,8 @@ class CacheClass(BaseCache):
         # cache miss.
         if refresh:
             self._cache.set(encoded_key, val,
-                self._get_memcache_timeout(CACHE_HERD_TIMEOUT))
+                self._get_memcache_timeout(CACHE_HERD_TIMEOUT),
+                min_compress_len=CACHE_MIN_COMPRESS_LEN)
             return default
         
         return val
@@ -164,7 +166,7 @@ class CacheClass(BaseCache):
         else:
             packed = value
             real_timeout = self._get_memcache_timeout(timeout)
-        return self._cache.set(key_func(key), packed, real_timeout)
+        return self._cache.set(key_func(key), packed, real_timeout, min_compress_len=CACHE_MIN_COMPRESS_LEN)
 
     def delete(self, key, **kwargs):
         self._cache.delete(key_func(key))
